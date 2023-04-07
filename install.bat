@@ -118,16 +118,14 @@ REM Install the required packages
 echo Installing requirements ...
 python -m pip install pip --upgrade
 python -m pip install -r requirements.txt
-if .ERRORLEVEL. neq 0 (
+if %ERRORLEVEL% neq 0 (
     echo Failed to install required packages. Please check your internet connection and try again.
     pause
     exit /b 1
 )
 
 echo Downloading latest model
-IF NOT EXIST models (
-    md models
-) else ()
+md models
 powershell -Command "Invoke-WebRequest -Uri 'https://the-eye.eu/public/AI/models/nomic-ai/gpt4all/gpt4all-lora-quantized-ggml.bin' -OutFile 'models/gpt4all-lora-quantized-ggml.bin'"
 
 echo Cleaning tmp folder
