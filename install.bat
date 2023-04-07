@@ -124,28 +124,39 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 
-echo Downloading latest model
+echo Checking for latest model...
+
 IF NOT EXIST models (
     md models
 )
 
 IF NOT EXIST models/gpt4all-lora-quantized-ggml.bin (
-    powershell -Command "Invoke-WebRequest -Uri 'https://the-eye.eu/public/AI/models/nomic-ai/gpt4all/gpt4all-lora-quantized-ggml.bin' -OutFile 'models/gpt4all-lora-quantized-ggml.bin'"
-) ELSE (
-    :PROMPT
+    :PROMPT_DOWNLOAD
     echo.
-    set /p choice="The model file already exists. Do you want to override it? (y/n) "
-    if /i {%choice%}=={y} (
-        powershell -Command "Invoke-WebRequest -Uri 'https://the-eye.eu/public/AI/models/nomic-ai/gpt4all/gpt4all-lora-quantized-ggml.bin' -OutFile 'models/gpt4all-lora-quantized-ggml.bin'" && goto :CONTINUE
-    ) else if /i {%choice%}=={n} (
-        goto :CONTINUE
-    ) else (
-        echo.
-        echo Invalid input. Please enter 'y' or 'n'.
-        goto :PROMPT
-    )
+    choice /C YN /M "The default model file (gpt4all-lora-quantized-ggml.bin) does not exist. Do you want to download it?"
+    if errorlevel 2 goto DOWNLOAD_SKIP
+    if errorlevel 1 goto MODEL_DOWNLOAD
+) ELSE (
+    :PROMPT_OVERRIDE
+    echo.
+    choice /C YN /M "The default model file (gpt4all-lora-quantized-ggml.bin) already exists. Do you want to override it?"
+    if errorlevel 2 goto DOWNLOAD_SKIP
+    if errorlevel 1 goto MODEL_DOWNLOAD
 )
+:MODEL_DOWNLOAD
+echo.
+echo Downloading latest model...
+powershell -Command "Invoke-WebRequest -Uri 'https://the-eye.eu/public/AI/models/nomic-ai/gpt4all/gpt4all-lora-quantized-ggml.bin' -OutFile 'models/gpt4all-lora-quantized-ggml.bin'"
+echo Model successfully downloaded.
+goto :CONTINUE
+
+:DOWNLOAD_SKIP
+echo.
+echo Skipping download of model file...
+goto :CONTINUE
+
 :CONTINUE
+echo.
 
 echo Cleaning tmp folder
 rd /s /q "./tmp"
